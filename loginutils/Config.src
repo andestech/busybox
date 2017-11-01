@@ -239,6 +239,12 @@ config FEATURE_NOLOGIN
 	  The file /etc/nologin is used by (some versions of) login(1).
 	  If it exists, non-root logins are prohibited.
 
+config AUTOLOGIN
+	bool "Support for autologin"
+	default y
+	depends on LOGIN
+	help
+
 config FEATURE_SECURETTY
 	bool "Support for /etc/securetty"
 	default y

@@ -597,13 +597,11 @@ static void download_one_url(const char *url)
 		if (G.fname_out[0] == '/' || !G.fname_out[0])
 			G.fname_out = (char*)"index.html";
 		/* -P DIR is considered only if there was no -O FILE */
+		if (G.dir_prefix)
+			G.fname_out = fname_out_alloc = concat_path_file(G.dir_prefix, G.fname_out);
 		else {
-			if (G.dir_prefix)
-				G.fname_out = fname_out_alloc = concat_path_file(G.dir_prefix, G.fname_out);
-			else {
-				/* redirects may free target.path later, need to make a copy */
-				G.fname_out = fname_out_alloc = xstrdup(G.fname_out);
-			}
+			/* redirects may free target.path later, need to make a copy */
+			G.fname_out = fname_out_alloc = xstrdup(G.fname_out);
 		}
 	}
 #if ENABLE_FEATURE_WGET_STATUSBAR
@@ -622,14 +620,14 @@ static void download_one_url(const char *url)
 	}
 
 	redir_limit = 5;
- resolve_lsa:
+resolve_lsa:
 	lsa = xhost2sockaddr(server.host, server.port);
 	if (!(option_mask32 & WGET_OPT_QUIET)) {
 		char *s = xmalloc_sockaddr2dotted(&lsa->u.sa);
 		fprintf(stderr, "Connecting to %s (%s)\n", server.host, s);
 		free(s);
 	}
- establish_session:
+establish_session:
 	/*G.content_len = 0; - redundant, got_clen = 0 is enough */
 	G.got_clen = 0;
 	G.chunked = 0;
@@ -647,8 +645,8 @@ static void download_one_url(const char *url)
 		/* Send HTTP request */
 		if (use_proxy) {
 			fprintf(sfp, "GET %stp://%s/%s HTTP/1.1\r\n",
-				target.is_ftp ? "f" : "ht", target.host,
-				target.path);
+					target.is_ftp ? "f" : "ht", target.host,
+					target.path);
 		} else {
 			if (option_mask32 & WGET_OPT_POST_DATA)
 				fprintf(sfp, "POST /%s HTTP/1.1\r\n", target.path);
@@ -657,7 +655,7 @@ static void download_one_url(const char *url)
 		}
 
 		fprintf(sfp, "Host: %s\r\nUser-Agent: %s\r\n",
-			target.host, G.user_agent);
+				target.host, G.user_agent);
 
 		/* Ask server to close the connection as soon as we are done
 		 * (IOW: we do not intend to send more requests)
@@ -667,11 +665,11 @@ static void download_one_url(const char *url)
 #if ENABLE_FEATURE_WGET_AUTHENTICATION
 		if (target.user) {
 			fprintf(sfp, "Proxy-Authorization: Basic %s\r\n"+6,
-				base64enc(target.user));
+					base64enc(target.user));
 		}
 		if (use_proxy && server.user) {
 			fprintf(sfp, "Proxy-Authorization: Basic %s\r\n",
-				base64enc(server.user));
+					base64enc(server.user));
 		}
 #endif
 
@@ -684,12 +682,12 @@ static void download_one_url(const char *url)
 
 		if (option_mask32 & WGET_OPT_POST_DATA) {
 			fprintf(sfp,
-				"Content-Type: application/x-www-form-urlencoded\r\n"
-				"Content-Length: %u\r\n"
-				"\r\n"
-				"%s",
-				(int) strlen(G.post_data), G.post_data
-			);
+					"Content-Type: application/x-www-form-urlencoded\r\n"
+					"Content-Length: %u\r\n"
+					"\r\n"
+					"%s",
+					(int) strlen(G.post_data), G.post_data
+			       );
 		} else
 #endif
 		{
@@ -701,7 +699,7 @@ static void download_one_url(const char *url)
 		/*
 		 * Retrieve HTTP response line and check for "200" status code.
 		 */
- read_response:
+read_response:
 		fgets_and_trim(sfp);
 
 		str = G.wget_buf;
@@ -711,49 +709,49 @@ static void download_one_url(const char *url)
 		// xatou wouldn't work: "200 OK"
 		status = atoi(str);
 		switch (status) {
-		case 0:
-		case 100:
-			while (gethdr(sfp) != NULL)
-				/* eat all remaining headers */;
-			goto read_response;
-		case 200:
-/*
-Response 204 doesn't say "null file", it says "metadata
-has changed but data didn't":
+			case 0:
+			case 100:
+				while (gethdr(sfp) != NULL)
+					/* eat all remaining headers */;
+				goto read_response;
+			case 200:
+				/*
+				   Response 204 doesn't say "null file", it says "metadata
+				   has changed but data didn't":
 
-"10.2.5 204 No Content
-The server has fulfilled the request but does not need to return
-an entity-body, and might want to return updated metainformation.
-The response MAY include new or updated metainformation in the form
-of entity-headers, which if present SHOULD be associated with
-the requested variant.
+				   "10.2.5 204 No Content
+				   The server has fulfilled the request but does not need to return
+				   an entity-body, and might want to return updated metainformation.
+				   The response MAY include new or updated metainformation in the form
+				   of entity-headers, which if present SHOULD be associated with
+				   the requested variant.
 
-If the client is a user agent, it SHOULD NOT change its document
-view from that which caused the request to be sent. This response
-is primarily intended to allow input for actions to take place
-without causing a change to the user agent's active document view,
-although any new or updated metainformation SHOULD be applied
-to the document currently in the user agent's active view.
+				   If the client is a user agent, it SHOULD NOT change its document
+				   view from that which caused the request to be sent. This response
+				   is primarily intended to allow input for actions to take place
+				   without causing a change to the user agent's active document view,
+				   although any new or updated metainformation SHOULD be applied
+				   to the document currently in the user agent's active view.
 
-The 204 response MUST NOT include a message-body, and thus
-is always terminated by the first empty line after the header fields."
+				   The 204 response MUST NOT include a message-body, and thus
+				   is always terminated by the first empty line after the header fields."
 
-However, in real world it was observed that some web servers
-(e.g. Boa/0.94.14rc21) simply use code 204 when file size is zero.
-*/
-		case 204:
-			break;
-		case 300:  /* redirection */
-		case 301:
-		case 302:
-		case 303:
-			break;
-		case 206:
-			if (G.beg_range)
+				   However, in real world it was observed that some web servers
+				   (e.g. Boa/0.94.14rc21) simply use code 204 when file size is zero.
+				 */
+			case 204:
 				break;
-			/* fall through */
-		default:
-			bb_error_msg_and_die("server returned error: %s", sanitize_string(G.wget_buf));
+			case 300:  /* redirection */
+			case 301:
+			case 302:
+			case 303:
+				break;
+			case 206:
+				if (G.beg_range)
+					break;
+				/* fall through */
+			default:
+				bb_error_msg_and_die("server returned error: %s", sanitize_string(G.wget_buf));
 		}
 
 		/*
@@ -813,8 +811,8 @@ However, in real world it was observed that some web servers
 				goto establish_session;
 			}
 		}
-//		if (status >= 300)
-//			bb_error_msg_and_die("bad redirection (no Location: header from server)");
+		//		if (status >= 300)
+		//			bb_error_msg_and_die("bad redirection (no Location: header from server)");
 
 		/* For HTTP, data is pumped over the same connection */
 		dfp = sfp;
@@ -860,7 +858,7 @@ int wget_main(int argc UNUSED_PARAM, char **argv)
 	static const char wget_longopts[] ALIGN1 =
 		/* name, has_arg, val */
 		"continue\0"         No_argument       "c"
-//FIXME: -s isn't --spider, it's --save-headers!
+		//FIXME: -s isn't --spider, it's --save-headers!
 		"spider\0"           No_argument       "s"
 		"quiet\0"            No_argument       "q"
 		"output-document\0"  Required_argument "O"
@@ -888,7 +886,7 @@ int wget_main(int argc UNUSED_PARAM, char **argv)
 	INIT_G();
 
 	IF_FEATURE_WGET_TIMEOUT(G.timeout_seconds = 900;)
-	G.proxy_flag = "on";   /* use proxies if env vars are set */
+		G.proxy_flag = "on";   /* use proxies if env vars are set */
 	G.user_agent = "Wget"; /* "User-Agent" header field */
 
 #if ENABLE_FEATURE_WGET_LONG_OPTIONS
@@ -896,13 +894,13 @@ int wget_main(int argc UNUSED_PARAM, char **argv)
 #endif
 	opt_complementary = "-1" IF_FEATURE_WGET_TIMEOUT(":T+") IF_FEATURE_WGET_LONG_OPTIONS(":\xfe::");
 	getopt32(argv, "csqO:P:Y:U:T:" /*ignored:*/ "t:",
-		&G.fname_out, &G.dir_prefix,
-		&G.proxy_flag, &G.user_agent,
-		IF_FEATURE_WGET_TIMEOUT(&G.timeout_seconds) IF_NOT_FEATURE_WGET_TIMEOUT(NULL),
-		NULL /* -t RETRIES */
-		IF_FEATURE_WGET_LONG_OPTIONS(, &headers_llist)
-		IF_FEATURE_WGET_LONG_OPTIONS(, &G.post_data)
-	);
+			&G.fname_out, &G.dir_prefix,
+			&G.proxy_flag, &G.user_agent,
+			IF_FEATURE_WGET_TIMEOUT(&G.timeout_seconds) IF_NOT_FEATURE_WGET_TIMEOUT(NULL),
+			NULL /* -t RETRIES */
+			IF_FEATURE_WGET_LONG_OPTIONS(, &headers_llist)
+			IF_FEATURE_WGET_LONG_OPTIONS(, &G.post_data)
+		);
 	argv += optind;
 
 #if ENABLE_FEATURE_WGET_LONG_OPTIONS

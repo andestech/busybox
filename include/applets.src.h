@@ -220,6 +220,7 @@ IF_LOADKMAP(APPLET(loadkmap, BB_DIR_SBIN, BB_SUID_DROP))
 IF_LOGGER(APPLET(logger, BB_DIR_USR_BIN, BB_SUID_DROP))
 /* Needs to be run by root or be suid root - needs to change uid and gid: */
 IF_LOGIN(APPLET(login, BB_DIR_BIN, BB_SUID_REQUIRE))
+IF_AUTOLOGIN(APPLET(autologin, BB_DIR_BIN, BB_SUID_REQUIRE))
 IF_LOGNAME(APPLET_NOFORK(logname, logname, BB_DIR_USR_BIN, BB_SUID_DROP, logname))
 IF_LOGREAD(APPLET(logread, BB_DIR_SBIN, BB_SUID_DROP))
 IF_LOSETUP(APPLET(losetup, BB_DIR_SBIN, BB_SUID_DROP))

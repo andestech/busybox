@@ -13,6 +13,7 @@ lib-$(CONFIG_CRYPTPW)	+= cryptpw.o
 lib-$(CONFIG_CHPASSWD)	+= chpasswd.o
 lib-$(CONFIG_GETTY)	+= getty.o
 lib-$(CONFIG_LOGIN)	+= login.o
+lib-$(CONFIG_AUTOLOGIN)	+= autologin.o
 lib-$(CONFIG_PASSWD)	+= passwd.o
 lib-$(CONFIG_SU)	+= su.o
 lib-$(CONFIG_SULOGIN)	+= sulogin.o
