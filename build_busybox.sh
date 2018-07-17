@@ -31,7 +31,7 @@ build()
   fi
 
   make ${DEFCONFIG} | tee -a ${LOG_FILE}
-  perl -i -npe "s/CROSS_COMPILER_PREFIX=.*/CROSS_COMPILER_PREFIX=\"${CROSS_COMPILE////\\\/}\"/" .config
+  sed -e "s#CROSS_COMPILER_PREFIX=.*#CROSS_COMPILER_PREFIX=\"$CROSS_COMPILE\"#" -i .config
 
   make 2>&1 | tee -a ${LOG_FILE}
 }
