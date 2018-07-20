@@ -44,11 +44,6 @@ install()
     INSTALL_PATH=$2
   fi
 
-  rm -f ${INSTALL_PATH}/bin/* 2>&1 | tee -a ${LOG_FILE}
-  rm -f ${INSTALL_PATH}/sbin/* 2>&1 | tee -a ${LOG_FILE}
-  rm -f ${INSTALL_PATH}/usr/bin/* 2>&1 | tee -a ${LOG_FILE}
-  rm -f ${INSTALL_PATH}/usr/sbin/* 2>&1 | tee -a ${LOG_FILE}
-
   make CONFIG_PREFIX=${INSTALL_PATH} install 2>&1 | tee -a ${LOG_FILE}
 
   echo Install path is : ${INSTALL_PATH}
