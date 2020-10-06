@@ -1270,7 +1270,10 @@ static NOINLINE void input_tab(smallint *lastWasTab)
 			strcpy(&command[cursor_mb], chosen_match + match_pfx_len);
 			len = load_string(command);
 			/* add match and tail */
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wrestrict" // We're not sure the length of command
 			sprintf(&command[cursor_mb], "%s%s", chosen_match + match_pfx_len, match_buf);
+            #pragma GCC diagnostic pop
 			command_len = load_string(command);
 			/* write out the matched command */
 			/* paranoia: load_string can return 0 on conv error,

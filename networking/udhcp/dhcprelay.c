@@ -40,6 +40,8 @@ struct xid_item {
 #define dhcprelay_xid_list (*(struct xid_item*)bb_common_bufsiz1)
 #define INIT_G() do { setup_common_bufsiz(); } while (0)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
 static struct xid_item *xid_add(uint32_t xid, struct sockaddr_in *ip, int client)
 {
 	struct xid_item *item;
@@ -378,3 +380,5 @@ int dhcprelay_main(int argc, char **argv)
 
 	/* return 0; - not reached */
 }
+#pragma GCC diagnostic pop
+

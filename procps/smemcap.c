@@ -51,7 +51,7 @@ static void writeheader(const char *path, struct stat *sb, int type)
 	sum = ' ' * 7;
 	for (i = 0; i < TAR_BLOCK_SIZE; i++)
 		sum += ((unsigned char*)&header)[i];
-	sprintf(header.chksum, "%06o", sum);
+	snprintf(header.chksum, sizeof(header.chksum),"%06o", sum);
 
 	xwrite(STDOUT_FILENO, &header, TAR_BLOCK_SIZE);
 }

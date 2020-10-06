@@ -248,6 +248,15 @@
 # define dbg3(...) ((void)0)
 #endif
 
+static ssize_t readlink2(char *buf, size_t bufsize)
+{
+    // Grr... gcc 8.1.1:
+    // "passing argument 2 to restrict-qualified parameter aliases with argument 1"
+    // dance around that...
+    char *obuf FIX_ALIASING;
+    obuf = buf; 
+    return readlink(buf, obuf, bufsize);
+}
 
 static const char keywords[] ALIGN1 = "add\0remove\0"; // "change\0"
 enum { OP_add, OP_remove };
@@ -831,7 +840,7 @@ static int FAST_FUNC fileAction(const char *fileName,
 	/* Read ".../subsystem" symlink in the same directory where ".../dev" is */
 	strcpy(subsys, path);
 	strcpy(subsys + len, "/subsystem");
-	res = readlink(subsys, subsys, sizeof(subsys)-1);
+	res = readlink2(subsys, sizeof(subsys)-1);
 	if (res > 0) {
 		subsys[res] = '\0';
 		free(G.subsystem);

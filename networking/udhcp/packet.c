@@ -12,6 +12,9 @@
 #include <netinet/if_ether.h>
 #include <netpacket/packet.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+
 #if ENABLE_UDHCPC || ENABLE_UDHCPD
 void FAST_FUNC udhcp_init_header(struct dhcp_packet *packet, char type)
 {
@@ -237,3 +240,4 @@ int FAST_FUNC udhcp_send_kernel_packet(struct dhcp_packet *dhcp_pkt,
 	}
 	return result;
 }
+#pragma GCC diagnostic pop

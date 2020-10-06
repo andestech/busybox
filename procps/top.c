@@ -695,9 +695,9 @@ static NOINLINE void display_process_list(int lines_rem, int scr_width)
 #endif
 
 		if (s->vsz >= 100000)
-			sprintf(vsz_str_buf, "%6ldm", s->vsz/1024);
+			snprintf(vsz_str_buf, sizeof(vsz_str_buf), "%6ldm", s->vsz/1024);
 		else
-			sprintf(vsz_str_buf, "%7lu", s->vsz);
+			snprintf(vsz_str_buf, sizeof(vsz_str_buf), "%7lu", s->vsz);
 		/* PID PPID USER STAT VSZ %VSZ [%CPU] COMMAND */
 		col = snprintf(line_buf, scr_width,
 				"\n" "%5u%6u %-8.8s %s%s" FMT

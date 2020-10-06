@@ -140,6 +140,9 @@ static const uint8_t len_of_option_as_string[] ALIGN1 = {
 	[OPTION_S32             ] = sizeof("-2147483684 "),
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
+
 /* note: ip is a pointer to an IP in network order, possibly misaliged */
 static int sprint_nip(char *dest, const char *pre, const uint8_t *ip)
 {
@@ -1853,3 +1856,4 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
 		remove_pidfile(client_config.pidfile);
 	return retval;
 }
+#pragma GCC diagnostic pop
