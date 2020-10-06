@@ -91,7 +91,7 @@ int FAST_FUNC string_to_llist(char *string, llist_t **llist, const char *delim)
 
 char* FAST_FUNC filename2modname(const char *filename, char *modname)
 {
-	char local_modname[MODULE_NAME_LEN];
+	static char local_modname[MODULE_NAME_LEN];
 	int i;
 	const char *from;
 
